@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Experiments - Flight Route Finder</title>
+  <link rel="stylesheet" href="lib/bootstrap/bootstrap.min.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <nav class="navbar navbar-expand navbar-dark bg-primary px-3">
+    <span class="navbar-brand">Flight Route Finder</span>
+    <div class="navbar-nav">
+      <a class="nav-link" href="index.html">Find a route</a>
+      <a class="nav-link" href="blog.html">Blog</a>
+      <a class="nav-link" href="tests.html">Test cases</a>
+      <a class="nav-link active" href="benchmark.html">Experiments</a>
+    </div>
+  </nav>
+
+  <div class="page">
+    <h3>Experiments</h3>
+    <p>How long does each method take to find a route, and how much of the network does it have to look at?
+      The trips are random pairs of airports that have a route between them. The same pairs are used for every method.</p>
+    <button class="btn btn-primary" id="runBtn">Run the experiments</button>
+    <span id="status" class="ms-2 text-muted"></span>
+
+    <h5>1. Five methods on the full network (100 random trips)</h5>
+    <div class="table-responsive">
+      <table class="table table-bordered table-sm">
+        <thead class="table-light">
+          <tr><th rowspan="2">Method</th><th colspan="3" class="text-center">Time for one search (ms)</th>
+            <th colspan="2" class="text-center">Work for one "quickest" search</th><th rowspan="2">Is the route the quickest one?</th></tr>
+          <tr><th class="num">Shortest distance</th><th class="num">Quickest</th><th class="num">Fewest flights</th>
+            <th class="num">Airports finished</th><th class="num">Flights looked at</th></tr>
+        </thead>
+        <tbody id="methodRows"><tr><td colspan="7" class="text-muted">Press the button.</td></tr></tbody>
+      </table>
+    </div>
+
+    <h5>2. What happens when the network grows</h5>
+    <p>Only the busiest airports are kept (200, then 400 and so on) with the flights between them. 60 random trips each, "quickest" cost.</p>
+    <div class="table-responsive">
+      <table class="table table-bordered table-sm">
+        <thead class="table-light">
+          <tr><th rowspan="2">Airports (V)</th><th rowspan="2" class="num">Routes (E)</th><th colspan="5" class="text-center">Time for one search (ms)</th></tr>
+          <tr><th class="num">Breadth first search</th><th class="num">Dijkstra without a heap</th><th class="num">Bellman-Ford</th>
+            <th class="num">Dijkstra with a min-heap</th><th class="num">A*</th></tr>
+        </thead>
+        <tbody id="sizeRows"><tr><td colspan="7" class="text-muted">Press the button.</td></tr></tbody>
+      </table>
+    </div>
+    <div class="chartbox"><canvas id="sizeChart"></canvas></div>
+
+    <h5>3. Dijkstra against A* (1000 random trips on the full network)</h5>
+    <p>Both give the same answer. The difference is how many airports they have to finish before they are sure, and how big the heap gets.</p>
+    <div class="table-responsive">
+      <table class="table table-bordered table-sm">
+        <thead class="table-light">
+          <tr><th rowspan="2">Kind of cost</th><th colspan="3" class="text-center">Airports finished</th>
+            <th colspan="2" class="text-center">Flights looked at</th><th colspan="2" class="text-center">Most items in the heap</th></tr>
+          <tr><th class="num">Dijkstra</th><th class="num">A*</th><th class="num">A* / Dijkstra</th>
+            <th class="num">Dijkstra</th><th class="num">A*</th><th class="num">Dijkstra</th><th class="num">A*</th></tr>
+        </thead>
+        <tbody id="workRows"><tr><td colspan="8" class="text-muted">Press the button.</td></tr></tbody>
+      </table>
+    </div>
+    <p>The same 1000 trips ("quickest" cost), put in groups by how many flights the trip needs:</p>
+    <div class="table-responsive">
+      <table class="table table-bordered table-sm" style="max-width: 640px">
+        <thead class="table-light">
+          <tr><th>Flights the trip needs</th><th class="num">Trips out of 1000</th><th class="num">Dijkstra finished</th><th class="num">A* finished</th></tr>
+        </thead>
+        <tbody id="groupRows"><tr><td colspan="4" class="text-muted">Press the button.</td></tr></tbody>
+      </table>
+    </div>
+    <div class="chartbox"><canvas id="workChart"></canvas></div>
+
+    <p class="text-muted small">"Airports finished" means airports whose best cost became final. "Flights looked at" is how many
+      times the line that compares a new cost with the old one was reached. Bellman-Ford stops as soon as a whole pass changes nothing.</p>
+  </div>
+
+  <script src="lib/chart.umd.min.js"></script>
+  <script src="data/network.js"></script>
+  <script src="js/routing.js"></script>
+  <script src="js/benchmark.js"></script>
+</body>
+</html>
