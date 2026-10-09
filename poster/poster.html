@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Poster - Flight Route Finder</title>
+<style>
+  /* A3 landscape. Open in Chrome and print to PDF (or run make_poster.sh) */
+  @page { size: 420mm 297mm; margin: 0; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    width: 420mm; height: 297mm;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 2.8mm;
+    line-height: 1.25;
+    color: #111;
+    background: #fff;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+    overflow: hidden;
+  }
+
+  .head {
+    height: 23mm;
+    margin: 0 7mm;
+    padding-top: 3.6mm;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    border-bottom: 1.1mm solid #1f5fa8;
+  }
+  .head h1 { font-size: 10.5mm; margin: 0; line-height: 1.05; color: #0f2f57; }
+  .head .sub { font-size: 4.4mm; color: #1f5fa8; margin-top: 1.3mm; }
+  .head .who { text-align: right; font-size: 3.6mm; line-height: 1.32; padding-top: 0.6mm; }
+  .head .who b { font-size: 4.6mm; }
+
+  .cols {
+    display: flex;
+    gap: 4mm;
+    padding: 3.2mm 7mm 0;
+    height: 267mm;
+  }
+  .col { flex: 1; display: flex; flex-direction: column; gap: 2.6mm; min-width: 0; }
+
+  .box { background: #e6f0fa; border: 0.3mm solid #44688f; padding: 1.5mm 2.2mm 1.8mm; }
+  .box h2 {
+    margin: 0 0 1.3mm;
+    color: #0f2f57;
+    font-size: 3.8mm;
+    padding-bottom: 0.5mm;
+    border-bottom: 0.3mm solid #44688f;
+  }
+  .box p { margin: 0 0 1.3mm; }
+  .box p:last-child { margin-bottom: 0; }
+  .box ul, .box ol { margin: 0 0 1.2mm; padding-left: 4.4mm; }
+  .box li { margin-bottom: 0.45mm; }
+  h3 { font-size: 3mm; margin: 1.4mm 0 0.6mm; color: #0f2f57; }
+  h3:first-child { margin-top: 0; }
+
+  table { border-collapse: collapse; width: 100%; margin: 0.8mm 0 1.2mm; background: #fff; }
+  th, td { border: 0.25mm solid #6f88a6; padding: 0.4mm 1mm; text-align: left; vertical-align: top; }
+  th { background: #c9dcf0; }
+  td.r, th.r { text-align: right; white-space: nowrap; }
+  td.c, th.c { text-align: center; }
+  tr.chosen td { background: #fff2cc; font-weight: bold; }
+  td.new { background: #fff2cc; font-weight: bold; }
+  td.fin { color: #777; }
+  .small { font-size: 2.5mm; }
+  .tiny { font-size: 2.25mm; color: #333; }
+  .ok { color: #1e7b34; font-weight: bold; }
+
+  .cap { font-size: 2.55mm; text-align: center; color: #222; margin-top: 0.6mm; }
+  .pair { display: flex; gap: 1.6mm; }
+  .pair > div { flex: 1; min-width: 0; }
+  img { width: 100%; display: block; border: 0.25mm solid #555; object-fit: cover; }
+  .tag { font-weight: bold; text-align: center; font-size: 2.85mm; padding: 0.4mm 0; }
+  .tag.orange { color: #c55a00; }
+  .tag.purple { color: #6a1fb0; }
+  .tag.blue { color: #0b5ed7; }
+
+  pre {
+    font-family: Consolas, Menlo, "Courier New", monospace;
+    font-size: 2.25mm;
+    line-height: 1.24;
+    background: #fff;
+    border: 0.25mm solid #6f88a6;
+    padding: 1.2mm 1.5mm;
+    margin: 0.8mm 0 0;
+    white-space: pre-wrap;
+  }
+  .note { background: #fff2cc; border: 0.25mm solid #d6b656; padding: 1mm 1.5mm; margin-top: 1.1mm; }
+  .chart { position: relative; height: 34mm; background: #fff; border: 0.25mm solid #6f88a6; }
+  .foot {
+    height: 6.5mm; line-height: 6.5mm; margin: 0 7mm;
+    font-size: 2.7mm; color: #0f2f57;
+    display: flex; justify-content: space-between;
+  }
+  svg text { font-family: Arial, Helvetica, sans-serif; }
+  svg { background: #fff; border: 0.25mm solid #6f88a6; display: block; }
+</style>
+</head>
+<body>
+
+<div class="head">
+  <div>
+    <h1>Flight Route Finder</h1>
+    <div class="sub">Finding connecting flights between any two airports with Dijkstra's algorithm and A* search</div>
+  </div>
+  <div class="who">
+    <b>Niranjan S</b><br>
+    BCA, CHRIST (Deemed to be University), Bengaluru<br>
+    October 2026
+  </div>
+</div>
+
+<div class="cols">
+
+  <!-- ================= column 1 ================= -->
+  <div class="col">
+
+    <div class="box">
+      <h2>1. The routing problem</h2>
+      <p>Big cities have direct flights to each other. Small airports do not. In my data Mysuru has flights only to
+        Bengaluru, and Shillong only to Kolkata. Somebody going from Mysuru to Shillong has to change planes, and has to
+        <b>work out where to change</b>.</p>
+      <p><b>Problem:</b> given a starting airport and a destination, find the chain of flights that is best for the passenger.
+        "Best" can mean reaching quickest, taking the fewest flights or flying the shortest distance. If an airport is
+        closed (fog, a cyclone) or the passenger cannot pass through it (no transit visa), the route must go round it.</p>
+      <p>As a graph: every airport is a <b>node</b>, every flight is a <b>directed edge</b> with a cost, and I need the
+        cheapest path from one node to another (single-pair shortest path).</p>
+      <img src="img/route.jpg">
+      <div class="cap">Mysuru to Shillong in my prototype: 3 flights, changing at Bengaluru and Kolkata.</div>
+    </div>
+
+    <div class="box">
+      <h2>2. Inputs and outputs</h2>
+      <table>
+        <tr><th style="width:15mm">Input</th><td>
+          &bull; From and To airport (type a city, airport name or 3-letter code, or click a dot on the map).<br>
+          &bull; What matters most: quickest, fewest flights or shortest distance.<br>
+          &bull; Hours wanted between two flights (1 to 4), and airports to avoid.<br>
+          &bull; The network: 3,257 airports with latitude and longitude, 37,042 routes.</td></tr>
+        <tr><th>Output</th><td>
+          &bull; The flights to take in order, with km and time of each, and the total.<br>
+          &bull; Where to change planes, and up to 3 other routes to choose from.<br>
+          &bull; The route on a world map and a link to check each flight on Google Flights.<br>
+          &bull; How many airports the search looked at.</td></tr>
+      </table>
+      <p class="small"><b>Data:</b> OpenFlights open database. I cleaned it with a Python script: removed airports without a code,
+        kept every route once (67,663 rows became 37,042) and corrected 20 Indian city names (Madras to Chennai, Patina to Patna).
+        225 countries, 71 airports in India. 820 routes have no flight back, so the graph is directed.</p>
+    </div>
+
+    <div class="box" style="flex:1">
+      <h2>3. The prototype</h2>
+      <img src="img/page.jpg">
+      <div class="cap">Hubballi to Leh: the answer with 3 other routes on the left, the map on the right.</div>
+      <p style="margin-top:1mm">A web page in HTML and plain JavaScript with Bootstrap and Leaflet. Nothing to install, works on a phone.
+        It draws the world map itself from land outline data, so it works without internet.</p>
+      <ul>
+        <li>Next to every change of planes there is "avoid this airport". One click and it finds a way round.</li>
+        <li>A "How was this found?" box draws the airports that Dijkstra and A* looked at.</li>
+      </ul>
+      <p class="small"><b>Files:</b> index.html, js/app.js (the page), js/routing.js (all the algorithms, 400 lines),
+        tools/build_data.py (cleans the data), tests.html, benchmark.html.</p>
+    </div>
+
+  </div>
+
+  <!-- ================= column 2 ================= -->
+  <div class="col">
+
+    <div class="box" style="flex:1">
+      <h2>4. The algorithm</h2>
+
+      <h3>The cost of one flight</h3>
+      <p>Every flight costs <b>a &times; km + b</b>, where km is the great circle distance (haversine formula). Only a and b change,
+        so one search function does all three kinds of "best". No cost is negative.</p>
+      <table class="small">
+        <tr><th style="width:25mm">Best means</th><th class="c" style="width:14mm">a</th><th class="c" style="width:17mm">b</th><th>The total is in</th></tr>
+        <tr><td>Shortest distance</td><td class="c">1</td><td class="c">0</td><td>km</td></tr>
+        <tr><td>Quickest</td><td class="c">1/800</td><td class="c">0.5 + wait</td><td>hours (800 km/h + 0.5 h a flight)</td></tr>
+        <tr><td>Fewest flights</td><td class="c">0.000001</td><td class="c">1</td><td>flights (km only breaks ties)</td></tr>
+      </table>
+
+      <h3>Dijkstra's algorithm</h3>
+      <ol>
+        <li>The start gets cost 0, every other airport infinity. Put the start in a <b>min-heap</b>.</li>
+        <li>Take the airport with the smallest cost out of the heap. Its cost is now final ("finished").</li>
+        <li>For every flight out of it: if this way is cheaper than what the next airport has now, write the new cost,
+          note where it came from and put it in the heap.</li>
+        <li>Repeat 2 and 3 until the destination is finished. Walk back through the notes to get the route.</li>
+      </ol>
+
+      <h3>A*: the same thing with a guess</h3>
+      <p>In A* the heap is ordered by <b>cost so far + a guess of the cost still to go</b>. My guess is the cost of one
+        direct flight to the destination. No real route can be cheaper than that, so the guess is never too high and the
+        answer stays the best one. Airports in the wrong direction get a big guess and sink in the heap.</p>
+
+      <h3>Worked example: Mangaluru (IXE) to Guwahati (GAU), real km</h3>
+      <div class="pair">
+        <div>
+          <svg viewBox="0 0 96 64" width="100%">
+            <g stroke="#9a9a9a" stroke-width="0.7" fill="none">
+              <line x1="13" y1="55" x2="8" y2="30"/><line x1="8" y1="30" x2="38" y2="39"/><line x1="8" y1="30" x2="68" y2="20"/>
+            </g>
+            <g stroke="#0b5ed7" stroke-width="1.6" fill="none">
+              <polyline points="13,55 32,56 38,39 68,20 86,8"/>
+            </g>
+            <g fill="#0f2f57"><circle cx="32" cy="56" r="2"/><circle cx="8" cy="30" r="2"/><circle cx="38" cy="39" r="2"/><circle cx="68" cy="20" r="2"/></g>
+            <circle cx="13" cy="55" r="2.4" fill="#198754"/><circle cx="86" cy="8" r="2.4" fill="#dc3545"/>
+            <g font-size="4.2" font-weight="bold" fill="#111">
+              <text x="6" y="61.5">IXE</text><text x="33" y="62">BLR</text><text x="2" y="26">BOM</text>
+              <text x="40" y="44">HYD</text><text x="68" y="26.5">CCU</text><text x="77" y="5">GAU</text>
+            </g>
+            <g font-size="3.4" fill="#0b5ed7"><text x="18.5" y="54">307</text><text x="36.5" y="49">456</text><text x="47" y="28">1208</text><text x="78.5" y="17">499</text></g>
+            <g font-size="3.4" fill="#555"><text x="3.5" y="44">715</text><text x="19" y="38.5">623</text><text x="30" y="22.5">1666</text></g>
+          </svg>
+          <div class="cap"><b>Shortest distance:</b> via BLR, HYD, CCU<br><b>2,470 km</b>, 4 flights, 11 h 05 min</div>
+        </div>
+        <div>
+          <svg viewBox="0 0 96 64" width="100%">
+            <g stroke="#9a9a9a" stroke-width="0.7" fill="none">
+              <line x1="13" y1="55" x2="32" y2="56"/><line x1="32" y1="56" x2="38" y2="39"/><line x1="8" y1="30" x2="38" y2="39"/><line x1="38" y1="39" x2="68" y2="20"/>
+            </g>
+            <g stroke="#e8590c" stroke-width="1.6" fill="none">
+              <polyline points="13,55 8,30 68,20 86,8"/>
+            </g>
+            <g fill="#0f2f57"><circle cx="32" cy="56" r="2"/><circle cx="8" cy="30" r="2"/><circle cx="38" cy="39" r="2"/><circle cx="68" cy="20" r="2"/></g>
+            <circle cx="13" cy="55" r="2.4" fill="#198754"/><circle cx="86" cy="8" r="2.4" fill="#dc3545"/>
+            <g font-size="4.2" font-weight="bold" fill="#111">
+              <text x="6" y="61.5">IXE</text><text x="33" y="62">BLR</text><text x="2" y="26">BOM</text>
+              <text x="40" y="44">HYD</text><text x="68" y="26.5">CCU</text><text x="77" y="5">GAU</text>
+            </g>
+            <g font-size="3.4" fill="#e8590c"><text x="3.5" y="44">715</text><text x="30" y="22.5">1666</text><text x="78.5" y="17">499</text></g>
+            <g font-size="3.4" fill="#555"><text x="18.5" y="54">307</text><text x="36.5" y="49">456</text><text x="19" y="38.5">623</text><text x="47" y="28">1208</text></g>
+          </svg>
+          <div class="cap"><b>Quickest, fewest flights:</b> via BOM, CCU<br>2,880 km, 3 flights, <b>9 h 06 min</b> (2 h waits)</div>
+        </div>
+      </div>
+
+      <p style="margin-top:1mm" class="small"><b>Dijkstra, shortest distance.</b> Best km known after each step (yellow = changed, CCU improves in step 4):</p>
+      <table class="small">
+        <tr><th>Step</th><th>Finished</th><th class="r">BLR</th><th class="r">BOM</th><th class="r">HYD</th><th class="r">CCU</th><th class="r">GAU</th></tr>
+        <tr><td>1</td><td>IXE (0)</td><td class="r new">307</td><td class="r new">715</td><td class="r">-</td><td class="r">-</td><td class="r">-</td></tr>
+        <tr><td>2</td><td>BLR (307)</td><td class="r fin">307</td><td class="r">715</td><td class="r new">763</td><td class="r">-</td><td class="r">-</td></tr>
+        <tr><td>3</td><td>BOM (715)</td><td class="r fin">307</td><td class="r fin">715</td><td class="r">763</td><td class="r new">2381</td><td class="r">-</td></tr>
+        <tr><td>4</td><td>HYD (763)</td><td class="r fin">307</td><td class="r fin">715</td><td class="r fin">763</td><td class="r new">1971</td><td class="r">-</td></tr>
+        <tr><td>5</td><td>CCU (1971)</td><td class="r fin">307</td><td class="r fin">715</td><td class="r fin">763</td><td class="r fin">1971</td><td class="r new">2470</td></tr>
+        <tr><td>6</td><td>GAU (2470)</td><td colspan="5">destination finished, stop</td></tr>
+      </table>
+      <p class="small"><b>A* on the same example.</b> Straight line km to Guwahati: BLR 2039, BOM 2071, HYD 1678, CCU 498.
+        Heap values: BLR 307 + 2039 = 2346, HYD 763 + 1678 = 2441, CCU 1971 + 498 = 2469, GAU 2470, BOM 715 + 2071 = <b>2786</b>.
+        Guwahati comes out before Mumbai, so <b>A* finishes 5 airports and never Mumbai</b>. Dijkstra finishes all 6.</p>
+
+      <h3>Pseudocode</h3>
+<pre>best[start] = 0, best[all others] = infinity
+heap.push(start, guess(start))
+while heap is not empty
+    u = heap.pop()              // smallest cost + guess
+    if u is finished, skip it   // old copy
+    mark u finished
+    if u is the destination, stop
+    for every flight u -> v, v not finished or closed
+        c = best[u] + a * km(u, v) + b
+        if c &lt; best[v]
+            best[v] = c;  cameFrom[v] = u
+            heap.push(v, c + guess(v))
+guess(v) = a * straightLineKm(v, destination) + b
+           (guess = 0 gives plain Dijkstra)</pre>
+    </div>
+
+  </div>
+
+  <!-- ================= column 3 ================= -->
+  <div class="col">
+
+    <div class="box">
+      <h2>5. Why this algorithm?</h2>
+      <p>I wrote five methods and timed them on the same 100 random trips ("quickest" cost, full network). ms = milliseconds for one search.</p>
+      <table class="small">
+        <tr><th style="width:21mm">Method</th><th style="width:11.5mm">Best route?</th><th style="width:16mm">Time</th><th class="r" style="width:8.5mm">ms</th><th>What I found</th></tr>
+        <tr><td>Breadth first search</td><td>Fewest flights only</td><td>O(V + E)</td><td class="r">0.14</td><td>Does not look at km or hours. Not the quickest in 72 of 100 trips.</td></tr>
+        <tr><td>Dijkstra without a heap</td><td>Yes</td><td>O(V&sup2;)</td><td class="r">13.15</td><td>Looks through all airports to find the next one.</td></tr>
+        <tr><td>Bellman-Ford</td><td>Yes</td><td>O(V &middot; E)</td><td class="r">1.09</td><td>Made for negative costs, which I do not have. Cannot stop early.</td></tr>
+        <tr><td>Floyd-Warshall</td><td>Yes, all pairs</td><td>O(V&sup3;)</td><td class="r">not tried</td><td>3.5 &times; 10<sup>10</sup> steps and a table of 10.6 million numbers to answer one question.</td></tr>
+        <tr><td>Dijkstra with a min-heap</td><td>Yes</td><td>O((V + E) log V)</td><td class="r">0.63</td><td>21 times faster than without the heap.</td></tr>
+        <tr class="chosen"><td>A* (chosen)</td><td>Yes</td><td>same, worst case</td><td class="r">0.28</td><td>Same answers. Finishes about 1 airport in 6.</td></tr>
+      </table>
+      <p class="small"><b>Why it fits this problem:</b> costs are never negative. I need one start and one destination, not all pairs.
+        The network is sparse (11 routes per airport on average, 0.35% of all possible pairs), so a heap pays off.
+        Every airport has a position, so the straight line guess is free. And the answer must come while the user waits.</p>
+      <div class="pair" style="margin-top:1.2mm">
+        <div><div class="tag orange">Dijkstra: 1,853 airports finished</div><img src="img/dijkstra.jpg" style="height:31mm"></div>
+        <div><div class="tag purple">A*: 12 airports finished</div><img src="img/astar.jpg" style="height:31mm"></div>
+      </div>
+      <div class="cap">Kochi to Toronto, same answer from both (change at Dubai). Dijkstra spreads in every direction, A* goes
+        towards the destination. This trip is a good case, the average is in section 8.</div>
+    </div>
+
+    <div class="box" style="flex:1">
+      <h2>6. Test cases</h2>
+      <p class="small">27 test cases run on the same code that the page uses (tests.html). Some of them:</p>
+      <table class="small">
+        <tr><th>Test</th><th style="width:31mm">Expected</th><th style="width:19mm">Got</th><th style="width:7.5mm"></th></tr>
+        <tr><td>Distance, quarter of the equator</td><td>10,007.54 km</td><td>10,007.54 km</td><td class="ok">Pass</td></tr>
+        <tr><td>Distance London to New York</td><td>about 5,540 km</td><td>5,539.6 km</td><td class="ok">Pass</td></tr>
+        <tr><td>Heap: push 5, 3, 8, 1, 9, 2, 7, 1</td><td>1, 1, 2, 3, 5, 7, 8, 9</td><td>same</td><td class="ok">Pass</td></tr>
+        <tr><td>Example, shortest distance</td><td>via BLR, HYD, CCU, 2470 km</td><td>same</td><td class="ok">Pass</td></tr>
+        <tr><td>Example, quickest (2 h waits)</td><td>via BOM, CCU, 9.10 hours</td><td>same</td><td class="ok">Pass</td></tr>
+        <tr><td>From and To the same airport</td><td>0 km, no flight</td><td>0 km, 0 flights</td><td class="ok">Pass</td></tr>
+        <tr><td>Example, Hyderabad closed</td><td>goes round, 2880 km</td><td>2880 km</td><td class="ok">Pass</td></tr>
+        <tr><td>Example, Kolkata closed</td><td>no route (only way in)</td><td>no route</td><td class="ok">Pass</td></tr>
+        <tr><td>Real: Bengaluru to Delhi</td><td>direct, 1710 km, 2 h 38</td><td>same</td><td class="ok">Pass</td></tr>
+        <tr><td>Real: Mysuru to Shillong</td><td>MYQ-BLR-CCU-SHL</td><td>same</td><td class="ok">Pass</td></tr>
+        <tr><td>A* against Dijkstra, 900 searches</td><td>same cost every time</td><td>900 of 900</td><td class="ok">Pass</td></tr>
+        <tr><td>Fewest flights against BFS</td><td>same count</td><td>300 of 300</td><td class="ok">Pass</td></tr>
+        <tr><td>Every route can really be flown</td><td>all valid</td><td>876 of 876</td><td class="ok">Pass</td></tr>
+        <tr><td>Closing an airport never helps</td><td>never quicker</td><td>199 of 199</td><td class="ok">Pass</td></tr>
+        <tr><td>Slowest of 1800 searches</td><td>under 50 ms</td><td>about 3 ms</td><td class="ok">Pass</td></tr>
+      </table>
+      <div class="note small"><b>Result: 27 of 27 test cases passed.</b> In the worked example I know the answers by hand.
+        On the real network the methods are checked against each other.</div>
+    </div>
+
+  </div>
+
+  <!-- ================= column 4 ================= -->
+  <div class="col">
+
+    <div class="box">
+      <h2>7. Time and space complexity</h2>
+      <table class="small">
+        <tr><th>Part</th><th>Time</th><th>Space</th></tr>
+        <tr><td>Network as adjacency lists</td><td>O(V + E) to build</td><td>O(V + E)</td></tr>
+        <tr><td>Dijkstra with a min-heap</td><td>O((V + E) log V)</td><td>O(V) lists + O(E) heap</td></tr>
+        <tr class="chosen"><td>A*</td><td>same in the worst case</td><td>same</td></tr>
+        <tr><td>Dijkstra without a heap</td><td>O(V&sup2;)</td><td>O(V)</td></tr>
+        <tr><td>Bellman-Ford</td><td>O(V &middot; E)</td><td>O(V)</td></tr>
+        <tr><td>Breadth first search</td><td>O(V + E)</td><td>O(V)</td></tr>
+      </table>
+      <p class="small">V = 3,257 airports, E = 37,042 routes. A V &times; V table would need 10.6 million cells, the lists need 37,042.
+        The heap can grow to E in the worst case (I push a new copy instead of changing the old one). Measured: biggest heap
+        1,028 items on average for Dijkstra, 862 for A*.</p>
+    </div>
+
+    <div class="box" style="flex:1">
+      <h2>8. Experimental results</h2>
+      <p class="small">Random pairs of airports that have a route, same pairs for every method. Chrome 154, MacBook Air (M4).</p>
+
+      <h3>Time for one search when the network grows (log scale)</h3>
+      <div class="chart"><canvas id="timeChart"></canvas></div>
+
+      <h3>Airports finished before the answer (1000 trips, longer trips are harder)</h3>
+      <div class="chart" style="height:28mm"><canvas id="workChart"></canvas></div>
+
+      <table class="small" style="margin-top:1.5mm">
+        <tr><th rowspan="2">Kind of cost</th><th colspan="3" class="c">Airports finished</th><th colspan="2" class="c">ms for one search</th></tr>
+        <tr><th class="r">Dijkstra</th><th class="r">A*</th><th class="r">A* / Dijkstra</th><th class="r">Dijkstra</th><th class="r">A*</th></tr>
+        <tr><td>Shortest distance</td><td class="r">1,643</td><td class="r">190</td><td class="r">12%</td><td class="r">0.70</td><td class="r">0.24</td></tr>
+        <tr><td>Quickest</td><td class="r">1,647</td><td class="r">284</td><td class="r">17%</td><td class="r">0.63</td><td class="r">0.28</td></tr>
+        <tr><td>Fewest flights</td><td class="r">1,656</td><td class="r">443</td><td class="r">27%</td><td class="r">0.64</td><td class="r">0.38</td></tr>
+      </table>
+      <ul class="small" style="margin-top:1mm">
+        <li><b>The heap matters most.</b> At 3,257 airports Dijkstra takes 11.8 ms without it and 0.65 ms with it. From 200 to 3,257
+          airports the first got 98 times slower, the second 8 times.</li>
+        <li><b>A* finishes 12 to 27% of the airports</b> Dijkstra does. It helps least for fewest flights, where the
+          guess is almost the same (1 flight) for every airport.</li>
+        <li><b>But it is only about 2 times faster</b>, not 6, because every guess needs the distance formula (sin, cos).</li>
+        <li><b>Bellman-Ford</b> needed about 6 passes, not 3,256, but looked at 213,010 flights. Dijkstra looked at 12,971.</li>
+      </ul>
+    </div>
+
+    <div class="box">
+      <h2>9. Who can use it, and limits</h2>
+      <ul class="small">
+        <li>People in small towns who need to know where to change (Hubballi to Leh).</li>
+        <li>A hub is shut by fog or a cyclone: click "avoid" and see the next best way.</li>
+        <li>People who cannot pass through a country without a transit visa.</li>
+      </ul>
+      <p class="small"><b>Different from a booking site:</b> not tied to one airline, lets you rule out airports, shows how the answer was found.</p>
+      <p class="small"><b>Limits:</b> the routes are from 2014, so some flights do not run now and new ones are missing. No
+        timetable and no ticket price, the wait is the same at every airport.
+        <b>Next:</b> real schedules, so that the cost becomes the real arrival time, and price as a fourth kind of cost.</p>
+      <p class="tiny"><b>References:</b> E. W. Dijkstra, "A note on two problems in connexion with graphs", Numerische Mathematik, 1959.
+        Hart, Nilsson, Raphael, "A formal basis for the heuristic determination of minimum cost paths", IEEE Trans. SSC, 1968 (A*).
+        Cormen et al., Introduction to Algorithms. OpenFlights (openflights.org/data). Natural Earth. Leaflet.</p>
+    </div>
+
+  </div>
+</div>
+
+<div class="foot">
+  <span>Prototype: open index.html in a browser &nbsp;|&nbsp; Test cases: tests.html &nbsp;|&nbsp; Experiments: benchmark.html</span>
+  <span>Land outline: Natural Earth &nbsp;|&nbsp; Airports and routes: OpenFlights</span>
+</div>
+
+<script src="../lib/chart.umd.min.js"></script>
+<script>
+  // numbers copied from benchmark.html (Chrome 154, MacBook Air M4)
+  var sizes    = [200, 400, 800, 1600, 3257];
+  var bfsMs    = [0.012, 0.027, 0.047, 0.092, 0.140];
+  var simpleMs = [0.120, 0.380, 0.953, 4.02, 11.80];
+  var bellMs   = [0.110, 0.236, 0.373, 0.585, 0.830];
+  var heapMs   = [0.080, 0.181, 0.260, 0.512, 0.647];
+  var astarMs  = [0.021, 0.051, 0.078, 0.233, 0.301];
+
+  var flights  = ["1", "2", "3", "4", "5", "6 or more"];
+  var dFinish  = [109, 366, 1136, 1747, 2164, 2387];
+  var aFinish  = [2, 11, 83, 217, 513, 780];
+
+  Chart.defaults.font.family = "Arial, Helvetica, sans-serif";
+  Chart.defaults.font.size = 9.5;
+  Chart.defaults.color = "#111";
+  Chart.defaults.animation = false;
+
+  function line(label, data, colour, shape) {
+    return { label: label, data: data, borderColor: colour, backgroundColor: colour, borderWidth: 2, pointRadius: 3, pointStyle: shape };
+  }
+
+  new Chart(document.getElementById("timeChart"), {
+    type: "line",
+    data: { labels: sizes, datasets: [
+      line("Dijkstra, no heap", simpleMs, "#eb6834", "rect"),
+      line("Bellman-Ford", bellMs, "#eda100", "rectRot"),
+      line("Dijkstra, heap", heapMs, "#2a78d6", "triangle"),
+      line("A*", astarMs, "#1baf7a", "circle"),
+      line("BFS", bfsMs, "#6c757d", "crossRot")
+    ] },
+    options: {
+      maintainAspectRatio: false, devicePixelRatio: 4,
+      plugins: { legend: { labels: { usePointStyle: true, boxWidth: 5, boxHeight: 5, padding: 6 } } },
+      scales: {
+        y: { type: "logarithmic", min: 0.01, max: 20, title: { display: true, text: "milliseconds" },
+             afterBuildTicks: function (axis) { axis.ticks = [0.01, 0.1, 1, 10].map(function (v) { return { value: v }; }); },
+             ticks: { callback: function (v) { return String(v); } } },
+        x: { title: { display: true, text: "airports in the network (only the busiest ones kept, 60 trips each)" } }
+      }
+    }
+  });
+
+  new Chart(document.getElementById("workChart"), {
+    type: "bar",
+    data: { labels: flights, datasets: [
+      { label: "Dijkstra", data: dFinish, backgroundColor: "#2a78d6" },
+      { label: "A*", data: aFinish, backgroundColor: "#1baf7a" }
+    ] },
+    options: {
+      maintainAspectRatio: false, devicePixelRatio: 4,
+      plugins: { legend: { labels: { boxWidth: 10, padding: 6 } } },
+      scales: {
+        y: { max: 2500, ticks: { stepSize: 500 }, title: { display: true, text: "airports finished" } },
+        x: { title: { display: true, text: "flights the trip needs" } }
+      }
+    }
+  });
+</script>
+</body>
+</html>
