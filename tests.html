@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Test cases - Flight Route Finder</title>
+  <link rel="stylesheet" href="lib/bootstrap/bootstrap.min.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <nav class="navbar navbar-expand navbar-dark bg-primary px-3">
+    <span class="navbar-brand">Flight Route Finder</span>
+    <div class="navbar-nav">
+      <a class="nav-link" href="index.html">Find a route</a>
+      <a class="nav-link" href="blog.html">Blog</a>
+      <a class="nav-link active" href="tests.html">Test cases</a>
+      <a class="nav-link" href="benchmark.html">Experiments</a>
+    </div>
+  </nav>
+
+  <div class="page">
+    <h3>Test cases</h3>
+    <p>These run in your browser every time this page is opened (it takes a few seconds). They call the same functions
+      (<code>js/routing.js</code>) that the search page uses.</p>
+    <ul>
+      <li>Tests 1 to 4 check the distance formula and the min-heap.</li>
+      <li>Tests 5 to 15 use a small network of 6 airports where I worked out the answers by hand. It is the worked example on the poster.</li>
+      <li>Tests 16 to 27 use the real network (3,257 airports, 37,042 routes). There I cannot know the answers by hand, so the
+        methods are checked against each other and every route is checked to be a real one.</li>
+    </ul>
+
+    <div id="summary" class="alert alert-secondary">Running...</div>
+
+    <div class="table-responsive">
+      <table class="table table-bordered table-sm">
+        <thead class="table-light">
+          <tr><th>#</th><th>What is tested</th><th>Input</th><th>Expected</th><th>Got</th><th>Result</th></tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+
+    <h5>The small network used in tests 5 to 15</h5>
+    <p>Flights go both ways. The numbers are the real distances in km.</p>
+    <table class="table table-bordered table-sm" style="max-width: 520px">
+      <thead class="table-light"><tr><th>Route</th><th class="num">km</th></tr></thead>
+      <tbody>
+        <tr><td>Mangaluru (IXE) - Bengaluru (BLR)</td><td class="num">307</td></tr>
+        <tr><td>Mangaluru (IXE) - Mumbai (BOM)</td><td class="num">715</td></tr>
+        <tr><td>Bengaluru (BLR) - Hyderabad (HYD)</td><td class="num">456</td></tr>
+        <tr><td>Mumbai (BOM) - Hyderabad (HYD)</td><td class="num">623</td></tr>
+        <tr><td>Mumbai (BOM) - Kolkata (CCU)</td><td class="num">1666</td></tr>
+        <tr><td>Hyderabad (HYD) - Kolkata (CCU)</td><td class="num">1208</td></tr>
+        <tr><td>Kolkata (CCU) - Guwahati (GAU)</td><td class="num">499</td></tr>
+      </tbody>
+    </table>
+
+    <p class="text-muted small">The random airports use a fixed seed, so the same pairs are tested every time.
+      Only the time in the last test changes a little from run to run.</p>
+  </div>
+
+  <script src="data/network.js"></script>
+  <script src="js/routing.js"></script>
+  <script src="js/tests.js"></script>
+</body>
+</html>
