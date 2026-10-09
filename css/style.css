@@ -1,0 +1,111 @@
+/* Bootstrap does most of the styling, this file only has the extra bits */
+
+body { font-size: 15px; }
+
+.navbar-brand { font-weight: 600; }
+
+/* search page: form and result on the left, map on the right */
+#map { height: calc(100vh - 56px); background: #cfe3f5; }
+.panel {
+  height: calc(100vh - 56px);
+  overflow-y: auto;
+  background: #e9f1fa;
+  border-right: 1px solid #b9c9da;
+}
+/* phone: map on top, the form below it, menu links under the title */
+@media (max-width: 767px) {
+  #map { height: 42vh; }
+  .panel { height: auto; border-right: 0; }
+  .navbar { flex-wrap: wrap; padding-top: 6px; padding-bottom: 2px; }
+  .navbar-brand { width: 100%; padding-bottom: 0; }
+  .navbar .nav-link { padding-left: 0; padding-right: 16px; font-size: 14px; }
+}
+
+.box {
+  background: #fff;
+  border: 1px solid #9fb3c8;
+  padding: 12px 14px;
+}
+.box h5 { margin-bottom: 6px; }
+.form-label { margin-bottom: 3px; font-weight: 600; }
+
+/* the list that drops down under the From / To boxes while typing */
+.suggest .list-group-item { padding: 5px 10px; font-size: 13px; cursor: pointer; }
+.suggest { margin-bottom: 2px; }
+
+.chip {
+  display: inline-block;
+  background: #f8d7da;
+  border: 1px solid #e3a6ac;
+  padding: 1px 4px 1px 8px;
+  margin: 0 4px 4px 0;
+  font-size: 13px;
+}
+.chip button { border: 0; background: none; color: #842029; font-weight: 700; cursor: pointer; }
+
+#result table { font-size: 14px; background: #fff; }
+#result .headline { font-size: 17px; }
+#result tr.pickable { cursor: pointer; }
+#result td.waitrow { color: #6c757d; font-size: 13px; background: #f8f9fa; }
+#result .how { font-size: 13px; background: #fff; border: 1px solid #9fb3c8; padding: 8px 10px; }
+#result .how summary { font-weight: 600; cursor: pointer; }
+td.num, th.num { text-align: right; white-space: nowrap; }
+
+/* numbered pins on the map */
+.pin {
+  background: #0d6efd;
+  color: #fff;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  text-align: center;
+  font: 600 13px/22px Arial, sans-serif;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+.pin.start { background: #198754; }
+.pin.end { background: #dc3545; }
+
+/* city names on my own map (used when the OpenStreetMap pictures are not there) */
+.cityname {
+  white-space: nowrap;
+  font: 11px Arial, sans-serif;
+  color: #555;
+  text-indent: 6px;
+  line-height: 0;
+  text-shadow: 0 0 2px #fff, 0 0 2px #fff;
+}
+
+.legend {
+  background: #fff;
+  border: 1px solid #777;
+  padding: 4px 8px;
+  font-size: 13px;
+}
+.legend:empty { display: none; }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 5px; }
+
+/* test and experiment pages */
+.page { max-width: 1050px; margin: 0 auto; padding: 20px 15px 60px; }
+.page h3 { margin-top: 10px; }
+.page h5 { margin-top: 30px; }
+.page table { font-size: 14px; }
+.pass { color: #198754; font-weight: 600; }
+.fail { color: #dc3545; font-weight: 600; }
+.chartbox { position: relative; height: 340px; margin-bottom: 8px; }
+
+/* blog page */
+.blog { max-width: 800px; margin: 0 auto; padding: 28px 16px 70px; font-size: 17px; line-height: 1.65; color: #222; }
+.blog h1 { font-size: 31px; font-weight: 600; line-height: 1.25; }
+.blog h2 { font-size: 24px; font-weight: 600; margin: 42px 0 12px; padding-bottom: 5px; border-bottom: 1px solid #b9c9da; }
+.blog h3 { font-size: 19px; font-weight: 600; margin: 26px 0 8px; }
+.blog .by { font-size: 14px; color: #666; margin-bottom: 24px; }
+.blog table { font-size: 14px; }
+.blog td ul { margin: 0; padding-left: 18px; }
+.blog pre { background: #f4f7fb; border: 1px solid #b9c9da; padding: 12px 14px; font-size: 13.5px; line-height: 1.45; overflow-x: auto; }
+.blog pre code { color: #222; }
+.blog figure { margin: 16px 0; }
+.blog figure img { width: 100%; border: 1px solid #9fb3c8; }
+.blog figcaption { font-size: 14px; text-align: center; margin-top: 5px; color: #333; }
+.blog .two { display: flex; gap: 16px; margin: 14px 0; }
+.blog .two > * { flex: 1; min-width: 0; margin: 0; }
+.blog .refs li { font-size: 15px; }
+@media (max-width: 600px) { .blog .two { display: block; } .blog .two > * { margin-bottom: 14px; } .blog h1 { font-size: 25px; } }
